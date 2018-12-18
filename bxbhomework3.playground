@@ -1,0 +1,79 @@
+import Cocoa
+
+//********1*********//
+// zone:时区
+// date:日期
+func getDate(date: Date, zone: Int = 0) -> String {
+    let a = DateFormatter()
+    a.dateFormat = "yyyy年MM月dd日EEEE aa KK:mm"
+    a.locale = Locale.current
+    if zone >= 0 {   //当传入为正数时，为东半区
+        a.timeZone = TimeZone(abbreviation:"UTC+\(zone):00")
+    }
+    else {//当传入为负数时，为西半区
+        a.timeZone = TimeZone(abbreviation:"UTC \(zone):00")
+    }
+    let dateString = a.string(from:now)
+    return dateString
+}
+let now = Date()   //获取当前时间日期
+
+let Beijing = getDate(date:now, zone:+8)  //北京时间
+print("北京：\(Beijing)")
+
+let Tokyo = getDate(date:now, zone:+9)  //东京时间
+print("东京：\(Tokyo)")
+
+let NewYork = getDate(date:now, zone:-5)  //纽约时间
+print("纽约：\(NewYork)")
+
+let London = getDate(date:now)  //伦敦时间
+print("伦敦：\(London)")
+
+
+
+
+//********2********//
+let parentString = "Swift is a powerful and intuitive programming language for iOS, OS X, tvOS, and watchOS."
+let subString = parentString.replacingOccurrences(of: "OS", with: "")  //用""来替换"OS"，即相当于删除OS
+print(subString)
+
+
+//********3*********//
+let dic = ["date": ["Beijing": Beijing, "Tokyo": Tokyo, "NewYork": NewYork, "London": London], "string": subString] as AnyObject  //转换为任意类型
+
+let defaultDoc = FileManager.default  //获取默认工作路径
+if var path = defaultDoc.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
+    path.append("/123.txt")  //新建一个123.txt在文件夹的路径中
+    print(dic.write(toFile: path, atomically: true))  //新建上面指定的文件，并将数据写入(输出: true)
+}
+
+
+
+//********4*********//
+let image = try Data(contentsOf: URL(string: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1539106695078&di=be7ae3704ec5e057239c1df2e6f9a900&imgtype=0&src=http%3A%2F%2Fimg31.mtime.cn%2Fpi%2F2013%2F08%2F02%2F084307.80390047_1000X1000.jpg")!) //通过指定的url获取图片，并转换为二进制数据
+if var url = defaultDoc.urls(for: .documentDirectory, in: .userDomainMask).first {
+    url.appendPathComponent("image.png")
+    try image.write(to: url)  //将转换后的二进制数据存储为png图片
+}
+
+
+
+//********5*********//
+let url = URL(string: "[图片]http://www.weather.com.cn/data/sk/101110101.html")! //api的路径
+//let str = try String(contentsOf: url)
+//print(str)  //显示json数据内容
+let data = try Data(contentsOf: url)  //将json转换为二进制数据
+let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments)  //序列化json
+
+//解析json数据
+if let dic = json as? [String: Any] {
+    if let weather = dic["weatherinfo"] as? [String: Any] {
+        let city = weather["city"]!
+        let temp = weather["temp"]!
+        let wd = weather["WD"]!
+        let ws = weather["WS"]!
+        print("城市: \(city), 温度: \(temp), 风向: \(wd), 风力: \(ws)")
+        //输出: 城市: 西安, 温度: 20, 风向: 西南风, 风力: 1级
+    }
+}
